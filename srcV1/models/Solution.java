@@ -1,5 +1,8 @@
 package models;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Solution extends Combination {
 
     public Solution(int nbColorsInCombination) {
@@ -23,26 +26,30 @@ public class Solution extends Combination {
         // If a pawn is at the same place in the solution and in the combination, it's well placed
         // If a pawn is in the solution but not at the same place in the combination, it's misplaced
         // If a pawn is not in the solution, it's wrong
-        Clue[] clues = new Clue[getNbColorsInCombination()];
-        for (int i = 0; i < getNbColorsInCombination(); i++) {
+        int nbColorsInCombination = getNbColorsInCombination();
+        Clue[] clues = new Clue[nbColorsInCombination];
+        HashMap<PawnColor, Integer> nbOccurencesInSolution = new HashMap<>();
+
+        for (int i = 0; i < nbColorsInCombination; i++) {
             if (_pawns[i] == combination._pawns[i]) {
                 clues[i] = Clue.WELL_PLACED;
-            } else if (isInSolution(combination._pawns[i])) {
-                clues[i] = Clue.MISPLACED;
             } else {
-                clues[i] = Clue.WRONG;
+                nbOccurencesInSolution.put(_pawns[i], nbOccurencesInSolution.getOrDefault(_pawns[i], 0) + 1);
             }
         }
-        return clues;
-    }
 
-    private boolean isInSolution(PawnColor pawnColor) {
-        for (int i = 0; i < getNbColorsInCombination(); i++) {
-            if (_pawns[i] == pawnColor) {
-                return true;
+        for (int i = 0; i < nbColorsInCombination; i++) {
+            if (clues[i] == null) {
+                if (nbOccurencesInSolution.getOrDefault(combination._pawns[i], 0) > 0) {
+                    clues[i] = Clue.MISPLACED;
+                    nbOccurencesInSolution.put(combination._pawns[i], nbOccurencesInSolution.get(combination._pawns[i]) - 1);
+                } else {
+                    clues[i] = Clue.WRONG;
+                }
             }
         }
-        return false;
+
+        return clues;
     }
 
     public boolean isSolutionFound(Clue[] clues) {
